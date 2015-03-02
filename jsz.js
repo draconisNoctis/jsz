@@ -9,9 +9,11 @@
         factory(exports);
     } else {
         // Browser globals
-        factory((root.commonJsStrictGlobal = {}));
+        factory((root.jsz = {}));
     }
 }(this, function (exports) {
+
+	var CURRENT_VERSION = 1;
 
 	var B64 = {
 		TABLE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
@@ -55,7 +57,6 @@
 					index = i;
 				}
 			}
-			console.log('encode', index);
 			return [enc, index];
 		},
 
@@ -129,21 +130,55 @@
 
 	function encode(data) {
 		var bwt = BWT.encode(data);
-		var d = String.fromCharCode(bwt[1] >>> 8 & 0xFF)
-			+ String.fromCharCode(bwt[1] & 0xFF)
-			+ bwt[0];
-		var lzw = LZW.encode(d);
+		var lzw = LZW.encode(bwt[0]);
 
-		return B64.fromUint16Array(lzw);
+		return writeFormat(B64.fromUint16Array(lzw), bwt[1]);
 	}
 
 
 	function decode(data) {
-		var uint16array = B64.toUint16Array(data);
+		var format = readFormat(data);
+		var uint16array = B64.toUint16Array(format.data);
 		var lzw = LZW.decode(uint16array);
-		var bwt = BWT.decode(lzw.substr(2), (lzw.charCodeAt(0) << 8) | lzw.charCodeAt(1));
+		var bwt = BWT.decode(lzw, format.bwtIndex);
 
 		return bwt;
+	}
+
+	function writeFormat(data, bwtIndex) {
+		return [
+			String.fromCharCode(74),
+			String.fromCharCode(90),
+			String.fromCharCode(0x65),
+			B64.TABLE[CURRENT_VERSION],
+			B64.TABLE[(bwtIndex >>> 18) & 0x3F],
+			B64.TABLE[(bwtIndex >>> 12) & 0x3F],
+			B64.TABLE[(bwtIndex >>>  6) & 0x3F],
+			B64.TABLE[(bwtIndex >>>  0) & 0x3F],
+			data
+		].join('');
+	}
+
+	function readFormat(data) {
+		if(74 !== data.charCodeAt(0) || 90 !== data.charCodeAt(1)) {
+			throw new Error('No jsz compression found');
+		}
+
+		switch(data.charCodeAt(2)) {
+			case 0x65: // base64url
+				return {
+					encoding: 'base64url',
+					version: B64.TABLE.indexOf(data.charAt(3)),
+					bwtIndex: (B64.TABLE.indexOf(data.charAt(4)) << 18)
+						| (B64.TABLE.indexOf(data.charAt(5)) << 12)
+						| (B64.TABLE.indexOf(data.charAt(6)) << 6)
+						| B64.TABLE.indexOf(data.charAt(7)),
+					data: data.substr(8)
+				}
+				break;
+			default:
+				throw new Error('Unknown encoding');
+		}
 	}
 
 	exports.B64 = B64;
