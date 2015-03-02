@@ -9,7 +9,7 @@
         factory(exports);
     } else {
         // Browser globals
-        factory((root.commonJsStrictGlobal = {}));
+        factory((root.jsz = {}));
     }
 }(this, function (exports) {
 
