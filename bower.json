@@ -1,0 +1,24 @@
+{
+  "name": "jsz",
+  "version": "0.0.2",
+  "homepage": "https://github.com/draconisNoctis/jsz",
+  "authors": [
+    "Mark Wecke <mark.wecke@gmail.com>"
+  ],
+  "description": "Simple string compression with lzw, bwt and base64url",
+  "main": "encode.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "lzw",
+    "bwt",
+    "base64",
+    "base64url",
+    "compression",
+    "zip"
+  ],
+  "license": "MIT"
+}

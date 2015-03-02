@@ -151,4 +151,4 @@
 	exports.LZW = LZW;
 	exports.encode = encode;
 	exports.decode = decode;
-});
+}));
