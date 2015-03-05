@@ -1,6 +1,6 @@
 {
   "name": "jsz",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple string compression with lzw, bwt and base64url",
   "main": "jsz.js",
   "scripts": {
