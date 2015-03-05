@@ -1,8 +1,8 @@
 {
   "name": "jsz",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple string compression with lzw, bwt and base64url",
-  "main": "encode.js",
+  "main": "jsz.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/draconisNoctis/jsz/issues"
   },
-  "homepage": "https://github.com/draconisNoctis/jsz"
+  "homepage": "https://github.com/draconisNoctis/jsz",
+  "devDependencies": {
+    "chai": "^2.1.0",
+    "mocha": "^2.1.0"
+  }
 }
