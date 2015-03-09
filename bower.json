@@ -1,6 +1,6 @@
 {
   "name": "jsz",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "homepage": "https://github.com/draconisNoctis/jsz",
   "authors": [
     "Mark Wecke <mark.wecke@gmail.com>"
@@ -11,6 +11,12 @@
     "amd",
     "globals",
     "node"
+  ],
+  "ignore": [
+    "node_modules",
+    "test",
+    ".gitignore",
+    "package.json"
   ],
   "keywords": [
     "lzw",
