@@ -26,6 +26,10 @@ describe('jsz', function() {
                     expect(enc.substr(4, 4)).to.be.equal('AAAC');
                 });
             });
+            
+            it('should compress correct', function() {
+                expect(enc).to.be.equal('JZeBAAACB6AuBzBqBqBz');
+            })
         });
     });
     

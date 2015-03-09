@@ -61,23 +61,25 @@
 		},
 
 		decode: function(data, index) {
-			var l = data.length;
-
-			var table = new Array(l);
-			for(var i = -1; ++i < l;) {
-				table[i] = '';
-			}
-
-			for(var n = -1; ++n < l;) {
-				for(var i = -1; ++i < l;) {
-					table[i] = data.charAt(i) + table[i];
-				}
-
-				table.sort(function(a, b) {
-					return a === b ? 0 : a < b ? -1 : 1;
-				});
-			}
-			return table[index];
+            var l = data.length;
+            
+            var table = new Array(l);
+            for(var i = -1; ++i < l;) {
+                table[i] = { p: i, c: data[i] };
+            }
+            
+            table.sort(function(a, b) {
+                return a.c === b.c ? 0 : a.c < b.c ? -1 : 1;
+            });
+            
+            var result = '';
+            
+            for(var i = -1; ++i < l;) {
+                result += table[index].c;
+                index = table[index].p;
+            }
+            
+            return result;
 		}
 	}
 
