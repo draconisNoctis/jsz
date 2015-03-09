@@ -2,7 +2,7 @@
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['exports'], function (exports) {
-            factory((root.commonJsStrictGlobal = exports));
+            factory((root.jsz = exports));
         });
     } else if (typeof exports === 'object') {
         // CommonJS
@@ -12,9 +12,142 @@
         factory((root.jsz = {}));
     }
 }(this, function (exports) {
-
 	var CURRENT_VERSION = 1;
 
+
+    var mergeSort = (function() {
+        return mergeSort;
+        
+        function mergeSort(array, compare) {
+            var length = array.length,
+                middle = length >>> 1;
+            
+            if(2 > length) {
+                return array.slice();
+            }
+            
+            if(!compare) {
+                compare = function(a, b) {
+                    return a === b ? 0 : a < b ? -1 : 1;
+                }
+            }
+            
+            return merge(
+                mergeSort(array.slice(0, middle), compare),
+                mergeSort(array.slice(middle, length), compare),
+                compare
+            )
+        }
+        
+        function merge(left, right, compare) {
+            var result = [];
+            while(0 < left.length || 0 < right.length) {
+                if(0 < left.length && 0 < right.length) {
+                    if(compare(left[0], right[0]) <= 0) {
+                        result.push(left[0]);
+                        left = left.slice(1);
+                    } else {
+                        result.push(right[0]);
+                        right = right.slice(1);
+                    }
+                } else if(0 < left.length) {
+                    result.push(left[0]);
+                    left = left.slice(1);
+                } else if(0 < right.length) {
+                    result.push(right[0]);
+                    right = right.slice(1);
+                }
+            }
+            return result;
+        }
+    })();
+    
+    var UTF8 = {
+        encode: function(str) {
+            str += '';
+            
+            var utf8 = '',
+                i = -1,
+                length = str.length,
+                start = 0,
+                end = 0,
+                c1, c2, enc;
+            
+            while(++i < length) {
+                c1 = str.charCodeAt(i);
+                enc = null;
+                
+                if(c1 < 128) {
+                    ++end;
+                } else if(c1 < 2048) {
+                    enc = String.fromCharCode((c1 >> 6) | 192, (c1 & 63) | 128);
+                } else if((c1 & 0xF800) !== 0xD800) {
+                    enc = String.fromCharCode((c1 >> 12) | 224, ((c1 >> 6) & 63) | 128, (c1 & 63) | 128);
+                } else {
+                    if((c1 & 0xFC00) !== 0xD800) {
+                        throw new RangeError('Unmatched trail surrogate at ' + i);
+                    }
+                    c2 = str.charCodeAt(++i);
+                    if((c2 & 0xFC00) !== 0xD800) {
+                        throw new RangeError('Unmatched trail surrogate at ' + i);
+                    }
+                    c1 = ((c1 & 0x3FF) << 10) + (c2 & 0x3FF) + 0x10000
+                    enc = String.fromCharCode((c1 >> 18) | 240, ((c1 >> 12) & 63) | 128, ((c1 >> 6) & 63) | 128, (c1 & 63) | 128);
+                }
+                
+                if(null !== enc) {
+                    if(end > start) {
+                        utf8 += str.slice(start, end);
+                    }
+                    utf8 += enc;
+                    start = end = i + 1;
+                }
+            }
+            
+            if(end > start) {
+                utf8 += str.slice(start, length);
+            }
+            
+            return utf8;
+        },
+        decode: function(str) {
+            str += '';
+            
+            var result = [],
+                i = 0,
+                l = str.length,
+                c1, c2, c3, c4;
+            
+            while(i < l) {
+                c1 = str.charCodeAt(i);
+                if(c1 <= 191) {
+                    result.push(String.fromCharCode(c1));
+                    i += 1;
+                } else if(c1 <= 223) {
+                    c2 = str.charCodeAt(i + 1);
+                    result.push(String.fromCharCode(((c1 & 31) << 6) | (c2 & 63)));
+                    i += 2;
+                } else if(c1 <= 239) {
+                    c2 = str.charCodeAt(i + 1);
+                    c3 = str.charCodeAt(i + 2);
+                    result.push(String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
+                    i += 3;
+                } else {
+                    c2 = str.charCodeAt(i + 1);
+                    c3 = str.charCodeAt(i + 2);
+                    c4 = str.charCodeAt(i + 3);
+                    c1 = ((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63);
+                    c1 -= 0x10000;
+                    result.push(String.fromCharCode(0xD800 | ((c1 >> 10) & 0x3FF)));
+                    result.push(String.fromCharCode(0xDC00 | (c1 & 0x3FF)));
+                    i += 4;
+                }
+            }
+            
+            return result.join('');
+        }
+    };
+    
 	var B64 = {
 		TABLE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
 		toUint16Array: function(string) {
@@ -35,7 +168,11 @@
 			}).join('');
 		}
 	}
-
+    
+    
+    var sort = function(a, b) {
+        return a > b ? 1 : 0;
+    }
 	var BWT = {
 		encode: function(data) {
 			var l = data.length;
@@ -44,10 +181,8 @@
 			for(var i = -1; ++i < l;) {
 				matrix[i] = data.substr(l - i) + data.substr(0, l - i);
 			}
-
-			matrix.sort(function(a, b) {
-				return a === b ? 0 : a < b ? -1 : 1;
-			});
+            
+			matrix = mergeSort(matrix, sort);
 
 			var enc = '',
 				index;
@@ -68,9 +203,7 @@
                 table[i] = { p: i, c: data[i] };
             }
             
-            table.sort(function(a, b) {
-                return a.c === b.c ? 0 : a.c < b.c ? -1 : 1;
-            });
+            table = mergeSort(table, function(a, b) { return sort(a.c, b.c) });
             
             var result = '';
             
@@ -132,7 +265,8 @@
 
 	function encode(data) {
 		var bwt = BWT.encode(data);
-		var lzw = LZW.encode(bwt[0]);
+        var utf8 = UTF8.encode(bwt[0]);
+        var lzw = LZW.encode(utf8);
 
 		return writeFormat(B64.fromUint16Array(lzw), bwt[1]);
 	}
@@ -142,7 +276,8 @@
 		var format = readFormat(data);
 		var uint16array = B64.toUint16Array(format.data);
 		var lzw = LZW.decode(uint16array);
-		var bwt = BWT.decode(lzw, format.bwtIndex);
+        var utf8 = UTF8.decode(lzw);
+        var bwt = BWT.decode(utf8, format.bwtIndex);
 
 		return bwt;
 	}
@@ -183,6 +318,7 @@
 		}
 	}
 
+    exports.UTF8 = UTF8;
 	exports.B64 = B64;
 	exports.BWT = BWT;
 	exports.LZW = LZW;
