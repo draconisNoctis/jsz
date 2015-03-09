@@ -12,6 +12,12 @@
     "globals",
     "node"
   ],
+  "ignore": [
+    "node_modules",
+    "test",
+    ".gitignore",
+    "package.json"
+  ],
   "keywords": [
     "lzw",
     "bwt",
